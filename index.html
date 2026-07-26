@@ -9,7 +9,118 @@
     <link rel="apple-touch-icon" href="logo.png">
     <link rel="icon" href="logo.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <header>
+    <div style="display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:10px;">
+        <div class="app-icon-header">
+            <img src="logo.png" alt="MKA Budget">
+        </div>
+        <h1 style="margin:0; letter-spacing: 2px;">MKA BUDGET PRO V7.2</h1>
+    </div>
+    <p style="margin:5px 0 0 0; opacity: 0.8; font-size: 14px;">Capital · Revenu · Suivi Hebdomadaire</p>
+    <div id="syncStatus" class="sync-status synced">✅ Synchronisé</div>
+</header>
     <style>
+         /* Bouton d'installation PWA */
+.install-banner {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary);
+    color: white;
+    padding: 16px 24px;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    z-index: 3000;
+    max-width: 90%;
+    width: 400px;
+    animation: slideUp 0.5s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@keyframes slideUp {
+    from { transform: translateX(-50%) translateY(100px); opacity: 0; }
+    to { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+.install-banner.visible {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.install-banner .install-text {
+    flex: 1;
+}
+
+.install-banner .install-text h4 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.install-banner .install-text p {
+    margin: 4px 0 0 0;
+    font-size: 13px;
+    opacity: 0.8;
+}
+
+.install-banner .btn-install {
+    background: var(--accent);
+    color: var(--primary);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+    width: auto;
+    margin: 0;
+}
+
+.install-banner .btn-install:hover {
+    transform: scale(1.05);
+    opacity: 0.9;
+}
+
+.install-banner .btn-close-install {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 22px;
+    cursor: pointer;
+    padding: 0 5px;
+    width: auto;
+    margin: 0;
+    transition: color 0.3s;
+}
+
+.install-banner .btn-close-install:hover {
+    color: white;
+}
+
+/* Icône de l'application dans le header */
+.app-icon-header {
+    display: inline-block;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--accent);
+    padding: 4px;
+    vertical-align: middle;
+    margin-right: 10px;
+}
+
+.app-icon-header img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 6px;
+}
         :root {
             --primary: #0f172a;
             --secondary: #1e293b;
@@ -348,6 +459,15 @@
 </head>
 <body>
 
+<!-- BANNIÈRE D'INSTALLATION PWA -->
+<div id="installBanner" class="install-banner">
+    <div class="install-text">
+        <h4>📲 Installer MKA Budget</h4>
+        <p>Ajoutez l'application à votre écran d'accueil</p>
+    </div>
+    <button id="installButton" class="btn-install">Installer</button>
+    <button id="closeInstallBanner" class="btn-close-install">✕</button>
+</div>
 <!-- Bannière hors ligne -->
 <div id="offlineBanner" class="offline-banner">
     📶 Mode hors ligne - Les données seront synchronisées automatiquement
@@ -1096,6 +1216,142 @@
     // --- LANCEMENT ---
     // Démarrer l'application
     init();
+    // --- GESTION DE L'INSTALLATION PWA ---
+
+let deferredPrompt = null;
+const installBanner = document.getElementById('installBanner');
+const installButton = document.getElementById('installButton');
+const closeInstallBanner = document.getElementById('closeInstallBanner');
+
+// Vérifier si l'application est déjà installée
+const isAppInstalled = window.matchMedia('(display-mode: standalone)').matches || 
+                       window.navigator.standalone === true;
+
+// Écouter l'événement beforeinstallprompt
+window.addEventListener('beforeinstallprompt', (e) => {
+    // Empêcher l'affichage automatique du mini-infobar Chrome
+    e.preventDefault();
+    // Stocker l'événement pour l'utiliser plus tard
+    deferredPrompt = e;
+    
+    // Afficher la bannière d'installation (sauf si déjà installée)
+    if (!isAppInstalled) {
+        installBanner.classList.add('visible');
+    }
+});
+
+// Gérer le clic sur le bouton d'installation
+installButton.addEventListener('click', async () => {
+    if (deferredPrompt) {
+        // Afficher la boîte de dialogue d'installation
+        deferredPrompt.prompt();
+        
+        // Attendre le choix de l'utilisateur
+        const result = await deferredPrompt.userChoice;
+        
+        if (result.outcome === 'accepted') {
+            console.log('✅ Application installée avec succès');
+            installBanner.classList.remove('visible');
+            // Mettre à jour le statut
+            setSyncStatus('synced', '✅ Application installée');
+        } else {
+            console.log('❌ Installation refusée');
+        }
+        
+        // Réinitialiser l'événement
+        deferredPrompt = null;
+    }
+});
+
+// Fermer la bannière d'installation
+closeInstallBanner.addEventListener('click', () => {
+    installBanner.classList.remove('visible');
+});
+
+// Cacher la bannière si l'application est déjà installée
+if (isAppInstalled) {
+    installBanner.classList.remove('visible');
+}
+
+// Écouter l'événement appinstalled
+window.addEventListener('appinstalled', () => {
+    console.log('✅ Application installée via appinstalled');
+    installBanner.classList.remove('visible');
+});
+
+// Détecter le changement de mode d'affichage (standalone)
+window.matchMedia('(display-mode: standalone)').addEventListener('change', (e) => {
+    if (e.matches) {
+        console.log('✅ Application lancée en mode standalone');
+        installBanner.classList.remove('visible');
+    }
+});
+
+// --- CONFIGURATION POUR iOS (Safari) ---
+
+// Détection iOS
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+if (isIOS && !isAppInstalled) {
+    // Sur iOS, afficher un message personnalisé
+    const installText = document.querySelector('.install-banner .install-text p');
+    if (installText) {
+        installText.textContent = 'Touchez "Partager" puis "Ajouter à l\'écran d\'accueil"';
+    }
+    // Afficher la bannière si pas encore installée
+    if (!isAppInstalled) {
+        installBanner.classList.add('visible');
+    }
+}
+
+// Cacher la bannière si l'utilisateur a déjà fermé
+function checkInstallDismissed() {
+    const dismissed = localStorage.getItem('installBannerDismissed');
+    if (dismissed === 'true') {
+        installBanner.classList.remove('visible');
+    }
+}
+
+// Sauvegarder la fermeture
+closeInstallBanner.addEventListener('click', () => {
+    localStorage.setItem('installBannerDismissed', 'true');
+});
+
+// Réafficher après 7 jours si l'utilisateur a fermé
+function resetInstallBanner() {
+    const dismissedDate = localStorage.getItem('installBannerDismissedDate');
+    if (dismissedDate) {
+        const daysSince = (Date.now() - parseInt(dismissedDate)) / (1000 * 60 * 60 * 24);
+        if (daysSince > 7) {
+            localStorage.removeItem('installBannerDismissed');
+            localStorage.removeItem('installBannerDismissedDate');
+        }
+    }
+}
+
+// Modifier la fonction de fermeture
+closeInstallBanner.addEventListener('click', () => {
+    localStorage.setItem('installBannerDismissed', 'true');
+    localStorage.setItem('installBannerDismissedDate', Date.now().toString());
+    installBanner.classList.remove('visible');
+});
+
+// Appeler au chargement
+checkInstallDismissed();
+resetInstallBanner();
+
+// Afficher la bannière si l'événement beforeinstallprompt n'est pas déclenché
+// (pour iOS et certains navigateurs)
+setTimeout(() => {
+    const dismissed = localStorage.getItem('installBannerDismissed');
+    if (!isAppInstalled && dismissed !== 'true' && !installBanner.classList.contains('visible')) {
+        // Vérifier si on est sur un appareil mobile
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        if (isMobile) {
+            installBanner.classList.add('visible');
+        }
+    }
+}, 3000);
 </script>
 
 </body>
