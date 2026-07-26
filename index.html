@@ -485,35 +485,54 @@
         <div class="spinner"></div>
         <p style="margin:0; font-weight:600;">Chargement des données...</p>
     </div>
+
 </div>
 
 <div class="container">
     <!-- CONFIGURATION CAPITAL & REVENU -->
-    <div class="card">
-        <h3>💰 Capital & Revenu mensuel</h3>
-        <div class="grid-2">
-            <div>
-                <label class="label-sm">Capital initial (€)</label>
-                <input type="number" id="capitalInput" step="0.01" placeholder="ex: 1000">
-            </div>
-            <div>
-                <label class="label-sm">Revenu minimum (€)</label>
-                <input type="number" id="revenuInput" step="0.01" placeholder="ex: 500">
-            </div>
+<div class="card">
+    <h3>💰 Capital & Revenu mensuel</h3>
+    <div class="grid-2">
+        <div>
+            <label class="label-sm">Capital initial ($)</label>
+            <input type="number" id="capitalInput" step="0.01" placeholder="ex: 1000">
         </div>
-        <button onclick="updateCapitalRevenu()" class="btn-success">Mettre à jour</button>
-        <div class="capital-block">
-            <div class="label">Capital initial</div>
-            <div class="value" id="displayCapital">0.00 €</div>
-            <div class="label" style="margin-top:8px;">Revenu minimum</div>
-            <div class="value" id="displayRevenu">0.00 €</div>
-        </div>
-        <div class="capital-block" style="border-left-color: var(--info);">
-            <div class="label">Capital final estimé (après dépenses)</div>
-            <div class="value" id="displayCapitalFinal">0.00 €</div>
+        <div>
+            <label class="label-sm">Revenu minimum ($)</label>
+            <input type="number" id="revenuInput" step="0.01" placeholder="ex: 500">
         </div>
     </div>
-
+    <button onclick="updateCapitalRevenu()" class="btn-success">Mettre à jour</button>
+    <div class="capital-block">
+        <div class="label">Capital initial</div>
+        <div class="value" id="displayCapital">0.00 $</div>
+        <div class="label" style="margin-top:8px;">Revenu minimum</div>
+        <div class="value" id="displayRevenu">0.00 $</div>
+    </div>
+    <div class="capital-block" style="border-left-color: var(--info);">
+        <div class="label">Capital final estimé (après dépenses)</div>
+        <div class="value" id="displayCapitalFinal">0.00 $</div>
+    </div>
+</div>
+<!-- SECTION TAUX DE CHANGE - Version minimaliste -->
+<div class="card" style="background: #f8fafc; border: 1px solid var(--border);">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+        <div>
+            <div style="font-size: 13px; color: var(--text-muted); font-weight: 500;">💱 Taux de change</div>
+            <div style="font-size: 18px; font-weight: 700; color: var(--primary);">
+                1 <span style="color: var(--text-muted);">$</span> = 
+                <span id="exchangeRateDisplay" style="color: var(--accent); background: #fef3c7; padding: 2px 10px; border-radius: 6px;">2800</span> 
+                <span style="color: var(--text-muted);">FC</span>
+            </div>
+        </div>
+        <button onclick="modifyExchangeRate()" style="width: auto; padding: 8px 16px; font-size: 12px; background: var(--secondary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+            ✏️ Modifier
+        </button>
+    </div>
+    <div style="margin-top: 8px; font-size: 11px; color: var(--text-muted);">
+        Dernière mise à jour: <span id="rateLastUpdate">Aujourd'hui</span>
+    </div>
+</div>
     <!-- CATÉGORIES & BUDGETS -->
     <div class="card">
         <h3>📂 Catégories & Budgets</h3>
@@ -573,20 +592,33 @@
         <!-- Liste des dépenses existantes -->
         <div id="expenseListContainer">
             <div class="expense-list" id="expenseList"></div>
-            <div class="total-day" id="totalDay">Total : 0.00 €</div>
+            <div class="total-day" id="totalDay">Total : 0.00 $</div>
         </div>
 
         <!-- Section pour ajouter une nouvelle dépense -->
-        <div class="add-expense-section">
-            <h4>➕ Ajouter une dépense</h4>
-            <label class="label-sm">Catégorie</label>
-            <select id="expenseCategory"></select>
-            <label class="label-sm">Montant (€)</label>
+<div class="add-expense-section">
+    <h4>➕ Ajouter une dépense</h4>
+    <label class="label-sm">Catégorie</label>
+    <select id="expenseCategory"></select>
+    
+    <div class="grid-2">
+        <div>
+            <label class="label-sm">Montant ($)</label>
             <input type="number" id="expenseAmount" placeholder="0.00" step="0.01">
-            <label class="label-sm">Note / Motif</label>
-            <input type="text" id="expenseNote" placeholder="Ex: Courses">
-            <button onclick="saveExpense()" class="btn-success" style="margin-top: 10px;">Ajouter la dépense</button>
         </div>
+        <div>
+            <label class="label-sm">Montant (FC)</label>
+            <input type="number" id="expenseAmountFC" placeholder="0" step="1">
+        </div>
+    </div>
+    <p style="font-size: 11px; color: var(--text-muted); margin: 4px 0 8px 0;">
+        Taux: 1 $ = ${CURRENCY.exchangeRate} FC - Remplissez un seul champ
+    </p>
+    
+    <label class="label-sm">Note / Motif</label>
+    <input type="text" id="expenseNote" placeholder="Ex: Courses">
+    <button onclick="saveExpense()" class="btn-success" style="margin-top: 10px;">Ajouter la dépense</button>
+</div>
 
         <div style="margin-top: 15px; text-align: center;">
             <button onclick="closeModal('expenseModal')" class="btn-secondary">Fermer</button>
@@ -600,7 +632,7 @@
         <h3>Nouvelle Catégorie</h3>
         <label class="label-sm">Nom</label>
         <input type="text" id="catName" placeholder="Ex: Loyer, Transport...">
-        <label class="label-sm">Budget mensuel (€)</label>
+        <label class="label-sm">Budget mensuel ($)</label>
         <input type="number" id="catBudgetM" placeholder="0.00" step="0.01">
         <div class="grid-2">
             <button onclick="closeModal('catModal')" class="btn-secondary">Annuler</button>
@@ -616,8 +648,18 @@
         <input type="hidden" id="editExpenseId">
         <label class="label-sm">Catégorie</label>
         <select id="editCategory"></select>
-        <label class="label-sm">Montant (€)</label>
-        <input type="number" id="editAmount" step="0.01">
+        
+        <div class="grid-2">
+            <div>
+                <label class="label-sm">Montant ($)</label>
+                <input type="number" id="editAmount" step="0.01">
+            </div>
+            <div>
+                <label class="label-sm">Montant (FC)</label>
+                <input type="number" id="editAmountFC" step="1">
+            </div>
+        </div>
+        
         <label class="label-sm">Note / Motif</label>
         <input type="text" id="editNote" placeholder="Ex: Courses">
         <div class="grid-2">
@@ -656,6 +698,14 @@
         selectedDate: null,
         userId: 'default_user' // Pour permettre plusieurs utilisateurs
     };
+    // Ajoutez ces variables en haut de votre script, après la configuration Firebase
+const CURRENCY = {
+    main: '$',          // Devise principale
+    mainName: 'USD',
+    secondary: 'FC',    // Franc
+    secondaryName: 'Franc Congolais',
+    exchangeRate: 2800  // Taux de conversion (1 USD = 2800 FC)
+};
 
     const STORAGE_KEY = "MKA_BUDGET_V7_DATA";
     let isSaving = false;
@@ -939,60 +989,75 @@
     }
 
     function renderExpenseList() {
-        const container = document.getElementById('expenseList');
-        const totalElement = document.getElementById('totalDay');
-        const monthData = getMonthData(state.currentDate);
-        const dayExpenses = monthData.expenses
-            .filter(e => new Date(e.date).toDateString() === state.selectedDate.toDateString());
-        
-        if (dayExpenses.length === 0) {
-            container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 10px;">Aucune dépense pour ce jour</p>';
-            totalElement.innerText = 'Total : 0.00 €';
-            return;
-        }
-
-        container.innerHTML = dayExpenses.map(e => {
-            const cat = monthData.categories.find(c => c.id === e.catId);
-            return `
-                <div class="expense-item">
-                    <div class="info">
-                        <div class="cat">${cat ? cat.name : 'Catégorie supprimée'}</div>
-                        ${e.note ? `<div class="note">${e.note}</div>` : ''}
-                    </div>
-                    <div class="amount" style="color: var(--danger);">-${e.amount.toFixed(2)} €</div>
-                    <div class="actions">
-                        <button class="btn-edit" onclick="editExpense(${e.id})">✏️</button>
-                        <button class="btn-delete" onclick="deleteExpense(${e.id})">🗑️</button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        const total = dayExpenses.reduce((sum, e) => sum + e.amount, 0);
-        totalElement.innerText = `Total : ${total.toFixed(2)} €`;
+    const container = document.getElementById('expenseList');
+    const totalElement = document.getElementById('totalDay');
+    const monthData = getMonthData(state.currentDate);
+    const dayExpenses = monthData.expenses
+        .filter(e => new Date(e.date).toDateString() === state.selectedDate.toDateString());
+    
+    if (dayExpenses.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 10px;">Aucune dépense pour ce jour</p>';
+        totalElement.innerText = `Total : 0.00 ${CURRENCY.main}`;
+        return;
     }
+
+    container.innerHTML = dayExpenses.map(e => {
+        const cat = monthData.categories.find(c => c.id === e.catId);
+        const displayAmount = e.currency === 'FC' ? `${e.amountFC?.toFixed(0)} ${CURRENCY.secondary}` : `${e.amount.toFixed(2)} ${CURRENCY.main}`;
+        return `
+            <div class="expense-item">
+                <div class="info">
+                    <div class="cat">${cat ? cat.name : 'Catégorie supprimée'}</div>
+                    ${e.note ? `<div class="note">${e.note}</div>` : ''}
+                    ${e.currency === 'FC' ? `<div class="note" style="color: var(--text-muted);">≈ ${(e.amount).toFixed(2)} ${CURRENCY.main}</div>` : ''}
+                </div>
+                <div class="amount" style="color: var(--danger);">-${displayAmount}</div>
+                <div class="actions">
+                    <button class="btn-edit" onclick="editExpense(${e.id})">✏️</button>
+                    <button class="btn-delete" onclick="deleteExpense(${e.id})">🗑️</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    const total = dayExpenses.reduce((sum, e) => sum + e.amount, 0);
+    totalElement.innerText = `Total : ${total.toFixed(2)} ${CURRENCY.main}`;
+}
 
     function saveExpense() {
-        const catId = parseInt(document.getElementById('expenseCategory').value);
-        const amount = parseFloat(document.getElementById('expenseAmount').value) || 0;
-        const note = document.getElementById('expenseNote').value;
-        if (amount <= 0 || !catId) {
-            alert('Veuillez sélectionner une catégorie et entrer un montant valide.');
-            return;
-        }
-        const monthData = getMonthData(state.currentDate);
-        monthData.expenses.push({
-            id: Date.now(),
-            date: state.selectedDate.toISOString(),
-            catId,
-            amount,
-            note
-        });
-        document.getElementById('expenseAmount').value = '';
-        document.getElementById('expenseNote').value = '';
-        saveData();
-        renderExpenseList();
+    const catId = parseInt(document.getElementById('expenseCategory').value);
+    const amount = parseFloat(document.getElementById('expenseAmount').value) || 0;
+    const amountFC = parseFloat(document.getElementById('expenseAmountFC').value) || 0;
+    const note = document.getElementById('expenseNote').value;
+    
+    // Si le montant en FC est rempli, on convertit en USD
+    let finalAmount = amount;
+    if (amountFC > 0) {
+        finalAmount = amountFC / CURRENCY.exchangeRate;
     }
+    
+    if (finalAmount <= 0 || !catId) {
+        alert('Veuillez sélectionner une catégorie et entrer un montant valide.');
+        return;
+    }
+    
+    const monthData = getMonthData(state.currentDate);
+    monthData.expenses.push({
+        id: Date.now(),
+        date: state.selectedDate.toISOString(),
+        catId,
+        amount: finalAmount, // On stocke toujours en USD
+        amountFC: amountFC,  // On garde le montant en FC pour info
+        note,
+        currency: amountFC > 0 ? 'FC' : 'USD'
+    });
+    
+    document.getElementById('expenseAmount').value = '';
+    document.getElementById('expenseAmountFC').value = '';
+    document.getElementById('expenseNote').value = '';
+    saveData();
+    renderExpenseList();
+}
 
     function deleteExpense(id) {
         if (confirm('Supprimer cette dépense ?')) {
@@ -1004,44 +1069,53 @@
     }
 
     function editExpense(id) {
-        const monthData = getMonthData(state.currentDate);
-        const expense = monthData.expenses.find(e => e.id === id);
-        if (!expense) return;
+    const monthData = getMonthData(state.currentDate);
+    const expense = monthData.expenses.find(e => e.id === id);
+    if (!expense) return;
 
-        document.getElementById('editExpenseId').value = id;
-        document.getElementById('editAmount').value = expense.amount;
-        document.getElementById('editNote').value = expense.note || '';
+    document.getElementById('editExpenseId').value = id;
+    document.getElementById('editAmount').value = expense.amount;
+    document.getElementById('editAmountFC').value = expense.amountFC || 0;
+    document.getElementById('editNote').value = expense.note || '';
 
-        const sel = document.getElementById('editCategory');
-        sel.innerHTML = monthData.categories.map(c => 
-            `<option value="${c.id}" ${c.id === expense.catId ? 'selected' : ''}>${c.name}</option>`
-        ).join('');
+    const sel = document.getElementById('editCategory');
+    sel.innerHTML = monthData.categories.map(c => 
+        `<option value="${c.id}" ${c.id === expense.catId ? 'selected' : ''}>${c.name}</option>`
+    ).join('');
 
-        openModal('editModal');
+    openModal('editModal');
+}
+
+function updateExpense() {
+    const id = parseInt(document.getElementById('editExpenseId').value);
+    const catId = parseInt(document.getElementById('editCategory').value);
+    const amount = parseFloat(document.getElementById('editAmount').value) || 0;
+    const amountFC = parseFloat(document.getElementById('editAmountFC').value) || 0;
+    const note = document.getElementById('editNote').value;
+
+    let finalAmount = amount;
+    if (amountFC > 0) {
+        finalAmount = amountFC / CURRENCY.exchangeRate;
     }
 
-    function updateExpense() {
-        const id = parseInt(document.getElementById('editExpenseId').value);
-        const catId = parseInt(document.getElementById('editCategory').value);
-        const amount = parseFloat(document.getElementById('editAmount').value) || 0;
-        const note = document.getElementById('editNote').value;
-
-        if (amount <= 0 || !catId) {
-            alert('Veuillez sélectionner une catégorie et entrer un montant valide.');
-            return;
-        }
-
-        const monthData = getMonthData(state.currentDate);
-        const expense = monthData.expenses.find(e => e.id === id);
-        if (expense) {
-            expense.catId = catId;
-            expense.amount = amount;
-            expense.note = note;
-            saveData();
-            closeModal('editModal');
-            renderExpenseList();
-        }
+    if (finalAmount <= 0 || !catId) {
+        alert('Veuillez sélectionner une catégorie et entrer un montant valide.');
+        return;
     }
+
+    const monthData = getMonthData(state.currentDate);
+    const expense = monthData.expenses.find(e => e.id === id);
+    if (expense) {
+        expense.catId = catId;
+        expense.amount = finalAmount;
+        expense.amountFC = amountFC;
+        expense.note = note;
+        expense.currency = amountFC > 0 ? 'FC' : 'USD';
+        saveData();
+        closeModal('editModal');
+        renderExpenseList();
+    }
+}
 
     function getWeekNumber(date) {
         const d = date.getDate();
@@ -1091,20 +1165,20 @@
     }
 
     function renderCapitalInfos() {
-        const monthData = getMonthData(state.currentDate);
-        document.getElementById('displayCapital').innerText = (monthData.capital || 0).toFixed(2) + ' €';
-        document.getElementById('displayRevenu').innerText = (monthData.revenu || 0).toFixed(2) + ' €';
-        const month = state.currentDate.getMonth();
-        const year = state.currentDate.getFullYear();
-        const totalDepenses = monthData.expenses
-            .filter(e => {
-                const d = new Date(e.date);
-                return d.getMonth() === month && d.getFullYear() === year;
-            })
-            .reduce((s, e) => s + e.amount, 0);
-        const final = (monthData.capital || 0) + (monthData.revenu || 0) - totalDepenses;
-        document.getElementById('displayCapitalFinal').innerText = final.toFixed(2) + ' €';
-    }
+    const monthData = getMonthData(state.currentDate);
+    document.getElementById('displayCapital').innerText = (monthData.capital || 0).toFixed(2) + ' ' + CURRENCY.main;
+    document.getElementById('displayRevenu').innerText = (monthData.revenu || 0).toFixed(2) + ' ' + CURRENCY.main;
+    const month = state.currentDate.getMonth();
+    const year = state.currentDate.getFullYear();
+    const totalDepenses = monthData.expenses
+        .filter(e => {
+            const d = new Date(e.date);
+            return d.getMonth() === month && d.getFullYear() === year;
+        })
+        .reduce((s, e) => s + e.amount, 0);
+    const final = (monthData.capital || 0) + (monthData.revenu || 0) - totalDepenses;
+    document.getElementById('displayCapitalFinal').innerText = final.toFixed(2) + ' ' + CURRENCY.main;
+}
 
     function renderCalendar() {
         const grid = document.getElementById('calendarGrid');
@@ -1140,7 +1214,7 @@
             el.onclick = () => selectDate(d);
             el.innerHTML = `
                 <span class="day-num">${d}</span>
-                ${spent > 0 ? `<span class="day-spent">${spent.toFixed(0)}€</span>` : ''}
+                ${spent > 0 ? `<span class="day-spent">${spent.toFixed(0)}${CURRENCY.main}</span>` : ''}
             `;
             grid.appendChild(el);
         }
@@ -1197,17 +1271,17 @@
                             <div class="progress-bar-fill ${colorClass}" style="width: ${percent}%"></div>
                         </div>
                     </td>
-                    <td>${budgetTotalMois.toFixed(2)} €</td>
-                    <td>${budgetTotalSemaine.toFixed(2)} €</td>
-                    <td style="color: ${cumul > budgetTotalMois ? 'var(--danger)' : 'inherit'}; font-weight:700;">
-                        ${cumul.toFixed(2)} €
-                    </td>
-                    <td style="color: ${resteSemaine < 0 ? 'var(--danger)' : 'var(--success)'}; font-weight:700;">
-                        ${resteSemaine.toFixed(2)} €
-                    </td>
-                    <td style="color: ${resteMois < 0 ? 'var(--danger)' : 'var(--success)'}; font-weight:700;">
-                        ${resteMois.toFixed(2)} €
-                    </td>
+                    <td>${budgetTotalMois.toFixed(2)} ${CURRENCY.main}</td>
+<td>${budgetTotalSemaine.toFixed(2)} ${CURRENCY.main}</td>
+<td style="color: ${cumul > budgetTotalMois ? 'var(--danger)' : 'inherit'}; font-weight:700;">
+    ${cumul.toFixed(2)} ${CURRENCY.main}
+</td>
+<td style="color: ${resteSemaine < 0 ? 'var(--danger)' : 'var(--success)'}; font-weight:700;">
+    ${resteSemaine.toFixed(2)} ${CURRENCY.main}
+</td>
+<td style="color: ${resteMois < 0 ? 'var(--danger)' : 'var(--success)'}; font-weight:700;">
+    ${resteMois.toFixed(2)} ${CURRENCY.main}
+</td>
                 </tr>
             `;
         }).join('');
@@ -1352,6 +1426,23 @@ setTimeout(() => {
         }
     }
 }, 3000);
+
+function modifyExchangeRate() {
+    const newRate = prompt(`Taux de change actuel: 1 $ = ${CURRENCY.exchangeRate} FC\nEntrez le nouveau taux:`, CURRENCY.exchangeRate);
+    if (newRate !== null && !isNaN(newRate) && parseFloat(newRate) > 0) {
+        CURRENCY.exchangeRate = parseFloat(newRate);
+        document.getElementById('exchangeRateDisplay').textContent = CURRENCY.exchangeRate;
+        // Sauvegarder dans localStorage
+        localStorage.setItem('exchangeRate', CURRENCY.exchangeRate);
+        alert(`Taux mis à jour: 1 $ = ${CURRENCY.exchangeRate} FC`);
+    }
+}
+
+// Charger le taux sauvegardé
+const savedRate = localStorage.getItem('exchangeRate');
+if (savedRate) {
+    CURRENCY.exchangeRate = parseFloat(savedRate);
+}
 </script>
 
 </body>
