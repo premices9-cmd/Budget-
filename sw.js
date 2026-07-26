@@ -1,9 +1,9 @@
 // sw.js
 const CACHE_NAME = 'mka-budget-v7.2';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/logo.png',
+  './',              // Racine relative
+  './index.html',
+  './logo.png',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Dancing+Script:wght@700&display=swap',
   'https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js',
   'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js'

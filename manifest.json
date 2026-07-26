@@ -2,8 +2,8 @@
 {
   "name": "MKA Budget Pro",
   "short_name": "MKA Budget",
-  "description": "Gestion de budget avec capital, revenu et suivi hebdomadaire",
-  "start_url": "/index.html",
+  "start_url": "./index.html",  // <- Changement important
+  "scope": "./",                 // <- Ajoutez cette ligne
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
