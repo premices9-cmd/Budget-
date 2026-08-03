@@ -9,16 +9,6 @@
     <link rel="apple-touch-icon" href="logo.png">
     <link rel="icon" href="logo.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
-    <header>
-    <div style="display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:10px;">
-        <div class="app-icon-header">
-            <img src="logo.png" alt="MKA Budget">
-        </div>
-        <h1 style="margin:0; letter-spacing: 2px;">MKA BUDGET PRO V7.2</h1>
-    </div>
-    <p style="margin:5px 0 0 0; opacity: 0.8; font-size: 14px;">Capital · Revenu · Suivi Hebdomadaire</p>
-    <div id="syncStatus" class="sync-status synced">✅ Synchronisé</div>
-</header>
     <style>
          /* Bouton d'installation PWA */
 .install-banner {
@@ -231,6 +221,13 @@
         button.btn-secondary { background: var(--secondary); }
         button.btn-success { background: var(--success); }
         button.btn-danger { background: var(--danger); }
+        button.btn-edit-cat { 
+            background: var(--info); 
+            width: auto; 
+            padding: 4px 12px; 
+            font-size: 11px; 
+            margin: 0;
+        }
         .weekly-table {
             width: 100%;
             border-collapse: collapse;
@@ -448,6 +445,46 @@
         .offline-banner.visible {
             display: block;
         }
+        .credit-info {
+            background: #ecfdf5;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin: 8px 0;
+            border-left: 3px solid var(--success);
+            font-size: 13px;
+        }
+        .credit-info .credit-label {
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+        .credit-info .credit-value {
+            font-weight: 700;
+            color: var(--success);
+        }
+        .credit-info .credit-value.negative {
+            color: var(--danger);
+        }
+        .category-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            margin-top: 4px;
+        }
+        .category-actions button {
+            width: auto;
+            padding: 4px 8px;
+            font-size: 10px;
+            margin: 0;
+        }
+        .carry-notice {
+            background: #fef3c7;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: #92400e;
+            margin-top: 6px;
+            border-left: 3px solid #f59e0b;
+        }
         @media (max-width: 480px) {
             .grid-2 { grid-template-columns: 1fr; }
             .container { padding: 12px; }
@@ -474,7 +511,12 @@
 </div>
 
 <header>
-    <h1 style="margin:0; letter-spacing: 2px;">MKA BUDGET PRO V7.2</h1>
+    <div style="display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:10px;">
+        <div class="app-icon-header">
+            <img src="logo.png" alt="MKA Budget">
+        </div>
+        <h1 style="margin:0; letter-spacing: 2px;">MKA BUDGET PRO V7.2</h1>
+    </div>
     <p style="margin:5px 0 0 0; opacity: 0.8; font-size: 14px;">Capital · Revenu · Suivi Hebdomadaire</p>
     <div id="syncStatus" class="sync-status synced">✅ Synchronisé</div>
 </header>
@@ -485,7 +527,6 @@
         <div class="spinner"></div>
         <p style="margin:0; font-weight:600;">Chargement des données...</p>
     </div>
-
 </div>
 
 <div class="container">
@@ -612,7 +653,7 @@
         </div>
     </div>
     <p style="font-size: 11px; color: var(--text-muted); margin: 4px 0 8px 0;">
-        Taux: 1 $ = ${CURRENCY.exchangeRate} FC - Remplissez un seul champ
+        Taux: 1 $ = <span id="exchangeRateLabel">2800</span> FC - Remplissez un seul champ
     </p>
     
     <label class="label-sm">Note / Motif</label>
@@ -634,9 +675,31 @@
         <input type="text" id="catName" placeholder="Ex: Loyer, Transport...">
         <label class="label-sm">Budget mensuel ($)</label>
         <input type="number" id="catBudgetM" placeholder="0.00" step="0.01">
+        <label class="label-sm">Crédit disponible ($) <span style="font-weight:400; color:var(--text-muted);">(facultatif)</span></label>
+        <input type="number" id="catCredit" placeholder="0.00" step="0.01">
+        <p style="font-size:11px; color:var(--text-muted); margin:4px 0 12px 0;">Le crédit se déduira au fur et à mesure des dépenses de cette catégorie.</p>
         <div class="grid-2">
             <button onclick="closeModal('catModal')" class="btn-secondary">Annuler</button>
             <button onclick="saveCategory()" class="btn-success">Ajouter</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL ÉDITION CATÉGORIE -->
+<div id="editCatModal" class="modal">
+    <div class="modal-content">
+        <h3>Modifier la Catégorie</h3>
+        <input type="hidden" id="editCatId">
+        <label class="label-sm">Nom</label>
+        <input type="text" id="editCatName" placeholder="Ex: Loyer, Transport...">
+        <label class="label-sm">Budget mensuel ($)</label>
+        <input type="number" id="editCatBudgetM" placeholder="0.00" step="0.01">
+        <label class="label-sm">Crédit disponible ($) <span style="font-weight:400; color:var(--text-muted);">(facultatif)</span></label>
+        <input type="number" id="editCatCredit" placeholder="0.00" step="0.01">
+        <p style="font-size:11px; color:var(--text-muted); margin:4px 0 12px 0;">Le crédit restant sera ajusté automatiquement.</p>
+        <div class="grid-2">
+            <button onclick="closeModal('editCatModal')" class="btn-secondary">Annuler</button>
+            <button onclick="updateCategory()" class="btn-success">Mettre à jour</button>
         </div>
     </div>
 </div>
@@ -698,19 +761,21 @@
         selectedDate: null,
         userId: 'default_user' // Pour permettre plusieurs utilisateurs
     };
-    // Ajoutez ces variables en haut de votre script, après la configuration Firebase
-const CURRENCY = {
-    main: '$',          // Devise principale
-    mainName: 'USD',
-    secondary: 'FC',    // Franc
-    secondaryName: 'Franc Congolais',
-    exchangeRate: 2800  // Taux de conversion (1 USD = 2800 FC)
-};
+    
+    const CURRENCY = {
+        main: '$',          // Devise principale
+        mainName: 'USD',
+        secondary: 'FC',    // Franc
+        secondaryName: 'Franc Congolais',
+        exchangeRate: 2800  // Taux de conversion (1 USD = 2800 FC)
+    };
 
     const STORAGE_KEY = "MKA_BUDGET_V7_DATA";
     let isSaving = false;
     let syncTimeout = null;
     let isOnline = navigator.onLine;
+    // Ensemble pour suivre les catégories déjà reportées
+    let carriedCategories = new Set();
 
     // --- GESTION DE LA CONNEXION ---
 
@@ -860,8 +925,8 @@ const CURRENCY = {
             state.months = {
                 [key]: {
                     categories: [
-                        { id: 1, name: "Alimentation", budgetM: 300 },
-                        { id: 2, name: "Loyer", budgetM: 400 }
+                        { id: 1, name: "Alimentation", budgetM: 300, credit: 0 },
+                        { id: 2, name: "Loyer", budgetM: 400, credit: 0 }
                     ],
                     expenses: [],
                     capital: 1000,
@@ -950,18 +1015,66 @@ const CURRENCY = {
     function openModal(id) { document.getElementById(id).classList.add('open'); }
     function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-    // --- CATÉGORIES ---
+    // --- CATÉGORIES AVEC CRÉDIT ---
 
     function saveCategory() {
         const name = document.getElementById('catName').value;
         const budgetM = parseFloat(document.getElementById('catBudgetM').value) || 0;
+        const credit = parseFloat(document.getElementById('catCredit').value) || 0;
         if (!name) return;
+        
         const monthData = getMonthData(state.currentDate);
-        monthData.categories.push({ id: Date.now(), name, budgetM });
+        monthData.categories.push({ 
+            id: Date.now(), 
+            name, 
+            budgetM,
+            credit: credit // Le crédit initial
+        });
+        
         document.getElementById('catName').value = '';
         document.getElementById('catBudgetM').value = '';
+        document.getElementById('catCredit').value = '';
         closeModal('catModal');
         saveData();
+    }
+
+    // --- ÉDITION D'UNE CATÉGORIE ---
+
+    function editCategory(id) {
+        const monthData = getMonthData(state.currentDate);
+        const category = monthData.categories.find(c => c.id === id);
+        if (!category) return;
+
+        document.getElementById('editCatId').value = id;
+        document.getElementById('editCatName').value = category.name;
+        document.getElementById('editCatBudgetM').value = category.budgetM;
+        document.getElementById('editCatCredit').value = category.credit || 0;
+
+        openModal('editCatModal');
+    }
+
+    function updateCategory() {
+        const id = parseInt(document.getElementById('editCatId').value);
+        const name = document.getElementById('editCatName').value;
+        const budgetM = parseFloat(document.getElementById('editCatBudgetM').value) || 0;
+        const credit = parseFloat(document.getElementById('editCatCredit').value) || 0;
+
+        if (!name) {
+            alert('Veuillez entrer un nom pour la catégorie.');
+            return;
+        }
+
+        const monthData = getMonthData(state.currentDate);
+        const category = monthData.categories.find(c => c.id === id);
+        
+        if (category) {
+            category.name = name;
+            category.budgetM = budgetM;
+            category.credit = credit;
+            
+            saveData();
+            closeModal('editCatModal');
+        }
     }
 
     function deleteCategory(id) {
@@ -971,6 +1084,86 @@ const CURRENCY = {
             monthData.expenses = monthData.expenses.filter(e => e.catId !== id);
             saveData();
         }
+    }
+
+    // --- REPORT DU CRÉDIT IMMÉDIAT (QUAND LE BUDGET EST ÉPUISÉ) ---
+
+    function carryCreditToNextMonth(categoryId, categoryName, remainingCredit) {
+        if (remainingCredit <= 0) return;
+        
+        // Créer une clé unique pour ne pas reporter plusieurs fois la même catégorie
+        const carryKey = `${categoryId}-${getMonthKey(state.currentDate)}`;
+        if (carriedCategories.has(carryKey)) return;
+        
+        const nextDate = new Date(state.currentDate);
+        nextDate.setMonth(nextDate.getMonth() + 1);
+        const nextKey = getMonthKey(nextDate);
+        
+        if (!state.months[nextKey]) {
+            state.months[nextKey] = {
+                categories: [],
+                expenses: [],
+                capital: 0,
+                revenu: 0
+            };
+        }
+        
+        // Vérifier si la catégorie existe déjà dans le mois suivant
+        const existingCat = state.months[nextKey].categories.find(c => c.name === categoryName);
+        if (existingCat) {
+            // Ajouter le crédit restant au crédit existant
+            existingCat.credit = (existingCat.credit || 0) + remainingCredit;
+        } else {
+            // Créer la catégorie avec le crédit restant (sans budget)
+            state.months[nextKey].categories.push({
+                id: Date.now() + Math.random() * 1000,
+                name: categoryName,
+                budgetM: 0, // Le budget doit être saisi par l'utilisateur
+                credit: remainingCredit,
+                creditCarried: true // Marquer comme reporté
+            });
+        }
+        
+        // Marquer comme reporté pour éviter les doublons
+        carriedCategories.add(carryKey);
+        
+        saveData();
+        console.log(`✅ Crédit de ${remainingCredit.toFixed(2)} $ pour "${categoryName}" reporté au mois suivant (${nextKey})`);
+    }
+
+    // --- VÉRIFICATION DU BUDGET ÉPUISÉ APRÈS CHAQUE DÉPENSE ---
+
+    function checkBudgetDepleted() {
+        const monthData = getMonthData(state.currentDate);
+        const month = state.currentDate.getMonth();
+        const year = state.currentDate.getFullYear();
+        
+        monthData.categories.forEach(cat => {
+            // Calculer le total dépensé pour cette catégorie ce mois-ci
+            const totalSpent = monthData.expenses
+                .filter(e => {
+                    const d = new Date(e.date);
+                    return e.catId === cat.id && 
+                           d.getMonth() === month && 
+                           d.getFullYear() === year;
+                })
+                .reduce((sum, e) => sum + e.amount, 0);
+            
+            // Budget restant = budgetM - totalSpent
+            const remainingBudget = (cat.budgetM || 0) - totalSpent;
+            
+            // Si le budget est épuisé (0 ou moins) ET qu'il y a un crédit restant
+            if (remainingBudget <= 0 && cat.credit > 0) {
+                // Calculer le crédit restant = crédit initial - totalSpent (mais on garde le crédit comme base)
+                // Le crédit restant est le crédit initial - totalSpent (car le crédit sert à couvrir les dépenses)
+                const remainingCredit = (cat.credit || 0) - totalSpent;
+                
+                // Si le crédit restant est positif, on le reporte
+                if (remainingCredit > 0) {
+                    carryCreditToNextMonth(cat.id, cat.name, remainingCredit);
+                }
+            }
+        });
     }
 
     // --- DÉPENSES ---
@@ -984,80 +1177,103 @@ const CURRENCY = {
         const sel = document.getElementById('expenseCategory');
         sel.innerHTML = monthData.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
         document.getElementById('expenseAmount').value = '';
+        document.getElementById('expenseAmountFC').value = '';
         document.getElementById('expenseNote').value = '';
+        // Mettre à jour le taux de change dans le label
+        document.getElementById('exchangeRateLabel').textContent = CURRENCY.exchangeRate;
         openModal('expenseModal');
     }
 
     function renderExpenseList() {
-    const container = document.getElementById('expenseList');
-    const totalElement = document.getElementById('totalDay');
-    const monthData = getMonthData(state.currentDate);
-    const dayExpenses = monthData.expenses
-        .filter(e => new Date(e.date).toDateString() === state.selectedDate.toDateString());
-    
-    if (dayExpenses.length === 0) {
-        container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 10px;">Aucune dépense pour ce jour</p>';
-        totalElement.innerText = `Total : 0.00 ${CURRENCY.main}`;
-        return;
+        const container = document.getElementById('expenseList');
+        const totalElement = document.getElementById('totalDay');
+        const monthData = getMonthData(state.currentDate);
+        const dayExpenses = monthData.expenses
+            .filter(e => new Date(e.date).toDateString() === state.selectedDate.toDateString());
+        
+        if (dayExpenses.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 10px;">Aucune dépense pour ce jour</p>';
+            totalElement.innerText = `Total : 0.00 ${CURRENCY.main}`;
+            return;
+        }
+
+        container.innerHTML = dayExpenses.map(e => {
+            const cat = monthData.categories.find(c => c.id === e.catId);
+            const displayAmount = e.currency === 'FC' ? `${e.amountFC?.toFixed(0)} ${CURRENCY.secondary}` : `${e.amount.toFixed(2)} ${CURRENCY.main}`;
+            return `
+                <div class="expense-item">
+                    <div class="info">
+                        <div class="cat">${cat ? cat.name : 'Catégorie supprimée'}</div>
+                        ${e.note ? `<div class="note">${e.note}</div>` : ''}
+                        ${e.currency === 'FC' ? `<div class="note" style="color: var(--text-muted);">≈ ${(e.amount).toFixed(2)} ${CURRENCY.main}</div>` : ''}
+                    </div>
+                    <div class="amount" style="color: var(--danger);">-${displayAmount}</div>
+                    <div class="actions">
+                        <button class="btn-edit" onclick="editExpense(${e.id})">✏️</button>
+                        <button class="btn-delete" onclick="deleteExpense(${e.id})">🗑️</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        const total = dayExpenses.reduce((sum, e) => sum + e.amount, 0);
+        totalElement.innerText = `Total : ${total.toFixed(2)} ${CURRENCY.main}`;
     }
-
-    container.innerHTML = dayExpenses.map(e => {
-        const cat = monthData.categories.find(c => c.id === e.catId);
-        const displayAmount = e.currency === 'FC' ? `${e.amountFC?.toFixed(0)} ${CURRENCY.secondary}` : `${e.amount.toFixed(2)} ${CURRENCY.main}`;
-        return `
-            <div class="expense-item">
-                <div class="info">
-                    <div class="cat">${cat ? cat.name : 'Catégorie supprimée'}</div>
-                    ${e.note ? `<div class="note">${e.note}</div>` : ''}
-                    ${e.currency === 'FC' ? `<div class="note" style="color: var(--text-muted);">≈ ${(e.amount).toFixed(2)} ${CURRENCY.main}</div>` : ''}
-                </div>
-                <div class="amount" style="color: var(--danger);">-${displayAmount}</div>
-                <div class="actions">
-                    <button class="btn-edit" onclick="editExpense(${e.id})">✏️</button>
-                    <button class="btn-delete" onclick="deleteExpense(${e.id})">🗑️</button>
-                </div>
-            </div>
-        `;
-    }).join('');
-
-    const total = dayExpenses.reduce((sum, e) => sum + e.amount, 0);
-    totalElement.innerText = `Total : ${total.toFixed(2)} ${CURRENCY.main}`;
-}
 
     function saveExpense() {
-    const catId = parseInt(document.getElementById('expenseCategory').value);
-    const amount = parseFloat(document.getElementById('expenseAmount').value) || 0;
-    const amountFC = parseFloat(document.getElementById('expenseAmountFC').value) || 0;
-    const note = document.getElementById('expenseNote').value;
-    
-    // Si le montant en FC est rempli, on convertit en USD
-    let finalAmount = amount;
-    if (amountFC > 0) {
-        finalAmount = amountFC / CURRENCY.exchangeRate;
+        const catId = parseInt(document.getElementById('expenseCategory').value);
+        const amount = parseFloat(document.getElementById('expenseAmount').value) || 0;
+        const amountFC = parseFloat(document.getElementById('expenseAmountFC').value) || 0;
+        const note = document.getElementById('expenseNote').value;
+        
+        // Si le montant en FC est rempli, on convertit en USD
+        let finalAmount = amount;
+        if (amountFC > 0) {
+            finalAmount = amountFC / CURRENCY.exchangeRate;
+        }
+        
+        if (finalAmount <= 0 || !catId) {
+            alert('Veuillez sélectionner une catégorie et entrer un montant valide.');
+            return;
+        }
+        
+        const monthData = getMonthData(state.currentDate);
+        
+        // Vérifier le crédit disponible
+        const category = monthData.categories.find(c => c.id === catId);
+        if (category && category.credit && category.credit > 0) {
+            const totalSpent = monthData.expenses
+                .filter(e => e.catId === catId)
+                .reduce((sum, e) => sum + e.amount, 0);
+            const remainingCredit = category.credit - totalSpent;
+            
+            // Si le crédit est insuffisant pour couvrir la dépense
+            if (remainingCredit < finalAmount) {
+                if (!confirm(`⚠️ Crédit insuffisant pour cette catégorie.\nCrédit restant: ${remainingCredit.toFixed(2)} $\nMontant de la dépense: ${finalAmount.toFixed(2)} $\nVoulez-vous quand même enregistrer cette dépense ?`)) {
+                    return;
+                }
+            }
+        }
+        
+        monthData.expenses.push({
+            id: Date.now(),
+            date: state.selectedDate.toISOString(),
+            catId,
+            amount: finalAmount, // On stocke toujours en USD
+            amountFC: amountFC,  // On garde le montant en FC pour info
+            note,
+            currency: amountFC > 0 ? 'FC' : 'USD'
+        });
+        
+        document.getElementById('expenseAmount').value = '';
+        document.getElementById('expenseAmountFC').value = '';
+        document.getElementById('expenseNote').value = '';
+        saveData();
+        renderExpenseList();
+        
+        // Vérifier si le budget est épuisé après cette dépense
+        checkBudgetDepleted();
     }
-    
-    if (finalAmount <= 0 || !catId) {
-        alert('Veuillez sélectionner une catégorie et entrer un montant valide.');
-        return;
-    }
-    
-    const monthData = getMonthData(state.currentDate);
-    monthData.expenses.push({
-        id: Date.now(),
-        date: state.selectedDate.toISOString(),
-        catId,
-        amount: finalAmount, // On stocke toujours en USD
-        amountFC: amountFC,  // On garde le montant en FC pour info
-        note,
-        currency: amountFC > 0 ? 'FC' : 'USD'
-    });
-    
-    document.getElementById('expenseAmount').value = '';
-    document.getElementById('expenseAmountFC').value = '';
-    document.getElementById('expenseNote').value = '';
-    saveData();
-    renderExpenseList();
-}
 
     function deleteExpense(id) {
         if (confirm('Supprimer cette dépense ?')) {
@@ -1069,53 +1285,56 @@ const CURRENCY = {
     }
 
     function editExpense(id) {
-    const monthData = getMonthData(state.currentDate);
-    const expense = monthData.expenses.find(e => e.id === id);
-    if (!expense) return;
+        const monthData = getMonthData(state.currentDate);
+        const expense = monthData.expenses.find(e => e.id === id);
+        if (!expense) return;
 
-    document.getElementById('editExpenseId').value = id;
-    document.getElementById('editAmount').value = expense.amount;
-    document.getElementById('editAmountFC').value = expense.amountFC || 0;
-    document.getElementById('editNote').value = expense.note || '';
+        document.getElementById('editExpenseId').value = id;
+        document.getElementById('editAmount').value = expense.amount;
+        document.getElementById('editAmountFC').value = expense.amountFC || 0;
+        document.getElementById('editNote').value = expense.note || '';
 
-    const sel = document.getElementById('editCategory');
-    sel.innerHTML = monthData.categories.map(c => 
-        `<option value="${c.id}" ${c.id === expense.catId ? 'selected' : ''}>${c.name}</option>`
-    ).join('');
+        const sel = document.getElementById('editCategory');
+        sel.innerHTML = monthData.categories.map(c => 
+            `<option value="${c.id}" ${c.id === expense.catId ? 'selected' : ''}>${c.name}</option>`
+        ).join('');
 
-    openModal('editModal');
-}
-
-function updateExpense() {
-    const id = parseInt(document.getElementById('editExpenseId').value);
-    const catId = parseInt(document.getElementById('editCategory').value);
-    const amount = parseFloat(document.getElementById('editAmount').value) || 0;
-    const amountFC = parseFloat(document.getElementById('editAmountFC').value) || 0;
-    const note = document.getElementById('editNote').value;
-
-    let finalAmount = amount;
-    if (amountFC > 0) {
-        finalAmount = amountFC / CURRENCY.exchangeRate;
+        openModal('editModal');
     }
 
-    if (finalAmount <= 0 || !catId) {
-        alert('Veuillez sélectionner une catégorie et entrer un montant valide.');
-        return;
-    }
+    function updateExpense() {
+        const id = parseInt(document.getElementById('editExpenseId').value);
+        const catId = parseInt(document.getElementById('editCategory').value);
+        const amount = parseFloat(document.getElementById('editAmount').value) || 0;
+        const amountFC = parseFloat(document.getElementById('editAmountFC').value) || 0;
+        const note = document.getElementById('editNote').value;
 
-    const monthData = getMonthData(state.currentDate);
-    const expense = monthData.expenses.find(e => e.id === id);
-    if (expense) {
-        expense.catId = catId;
-        expense.amount = finalAmount;
-        expense.amountFC = amountFC;
-        expense.note = note;
-        expense.currency = amountFC > 0 ? 'FC' : 'USD';
-        saveData();
-        closeModal('editModal');
-        renderExpenseList();
+        let finalAmount = amount;
+        if (amountFC > 0) {
+            finalAmount = amountFC / CURRENCY.exchangeRate;
+        }
+
+        if (finalAmount <= 0 || !catId) {
+            alert('Veuillez sélectionner une catégorie et entrer un montant valide.');
+            return;
+        }
+
+        const monthData = getMonthData(state.currentDate);
+        const expense = monthData.expenses.find(e => e.id === id);
+        if (expense) {
+            expense.catId = catId;
+            expense.amount = finalAmount;
+            expense.amountFC = amountFC;
+            expense.note = note;
+            expense.currency = amountFC > 0 ? 'FC' : 'USD';
+            saveData();
+            closeModal('editModal');
+            renderExpenseList();
+            
+            // Vérifier si le budget est épuisé après modification
+            checkBudgetDepleted();
+        }
     }
-}
 
     function getWeekNumber(date) {
         const d = date.getDate();
@@ -1153,32 +1372,81 @@ function updateExpense() {
         const monthData = getMonthData(state.currentDate);
         const list = document.getElementById('categoryList');
         if (!list) return;
-        list.innerHTML = monthData.categories.map(c => `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #f1f5f9;">
-                <div>
-                    <span style="font-weight:700;">${c.name}</span><br>
-                    <span style="font-size:12px; color:var(--text-muted);">Budget mensuel: ${c.budgetM.toFixed(2)} €</span>
+        
+        // Calculer le crédit restant pour chaque catégorie
+        const categoriesWithCredit = monthData.categories.map(cat => {
+            const totalSpent = monthData.expenses
+                .filter(e => e.catId === cat.id)
+                .reduce((sum, e) => sum + e.amount, 0);
+            const remainingCredit = (cat.credit || 0) - totalSpent;
+            const remainingBudget = (cat.budgetM || 0) - totalSpent;
+            return {
+                ...cat,
+                totalSpent,
+                remainingCredit,
+                remainingBudget,
+                isBudgetDepleted: remainingBudget <= 0 && (cat.budgetM || 0) > 0
+            };
+        });
+        
+        list.innerHTML = categoriesWithCredit.map(c => {
+            const creditHTML = c.credit > 0 ? `
+                <div class="credit-info">
+                    <span class="credit-label">💳 Crédit: </span>
+                    <span class="credit-value ${c.remainingCredit < 0 ? 'negative' : ''}">
+                        ${c.remainingCredit.toFixed(2)} $
+                    </span>
+                    ${c.remainingCredit < 0 ? ' <span style="color:var(--danger);font-size:11px;">(dépassé)</span>' : ''}
+                    <span style="font-size:11px; color:var(--text-muted); margin-left:8px;">
+                        (initial: ${c.credit.toFixed(2)} $)
+                    </span>
                 </div>
-                <button onclick="deleteCategory(${c.id})" style="width:auto; background:var(--danger); padding:4px 8px; font-size:10px;">X</button>
-            </div>
-        `).join('');
+            ` : '';
+            
+            const budgetStatusHTML = c.isBudgetDepleted && c.credit > 0 ? `
+                <div class="carry-notice">
+                    🔄 Budget épuisé - Crédit restant (${c.remainingCredit.toFixed(2)} $) reporté au mois prochain
+                </div>
+            ` : (c.isBudgetDepleted ? `
+                <div class="carry-notice" style="background:#fee2e2; border-color:var(--danger); color:#991b1b;">
+                    ⚠️ Budget épuisé
+                </div>
+            ` : '');
+            
+            return `
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; padding:10px 0; border-bottom:1px solid #f1f5f9; flex-wrap:wrap;">
+                    <div style="flex:1;">
+                        <span style="font-weight:700;">${c.name}</span><br>
+                        <span style="font-size:12px; color:var(--text-muted);">Budget mensuel: ${c.budgetM.toFixed(2)} $</span>
+                        ${c.credit > 0 ? `<br><span style="font-size:12px; color:var(--text-muted);">Dépensé: ${c.totalSpent.toFixed(2)} $</span>` : ''}
+                        ${c.budgetM > 0 ? `<br><span style="font-size:12px; color:${c.remainingBudget < 0 ? 'var(--danger)' : 'var(--text-muted)'};">Budget restant: ${c.remainingBudget.toFixed(2)} $</span>` : ''}
+                        ${creditHTML}
+                        ${budgetStatusHTML}
+                    </div>
+                    <div class="category-actions">
+                        <button class="btn-edit-cat" onclick="editCategory(${c.id})">✏️</button>
+                        <button onclick="deleteCategory(${c.id})" style="width:auto; background:var(--danger); padding:4px 8px; font-size:10px; margin:0;">🗑️</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
     }
 
     function renderCapitalInfos() {
-    const monthData = getMonthData(state.currentDate);
-    document.getElementById('displayCapital').innerText = (monthData.capital || 0).toFixed(2) + ' ' + CURRENCY.main;
-    document.getElementById('displayRevenu').innerText = (monthData.revenu || 0).toFixed(2) + ' ' + CURRENCY.main;
-    const month = state.currentDate.getMonth();
-    const year = state.currentDate.getFullYear();
-    const totalDepenses = monthData.expenses
-        .filter(e => {
-            const d = new Date(e.date);
-            return d.getMonth() === month && d.getFullYear() === year;
-        })
-        .reduce((s, e) => s + e.amount, 0);
-    const final = (monthData.capital || 0) + (monthData.revenu || 0) - totalDepenses;
-    document.getElementById('displayCapitalFinal').innerText = final.toFixed(2) + ' ' + CURRENCY.main;
-}
+        const monthData = getMonthData(state.currentDate);
+        document.getElementById('displayCapital').innerText = (monthData.capital || 0).toFixed(2) + ' ' + CURRENCY.main;
+        document.getElementById('displayRevenu').innerText = (monthData.revenu || 0).toFixed(2) + ' ' + CURRENCY.main;
+        const month = state.currentDate.getMonth();
+        const year = state.currentDate.getFullYear();
+        const totalDepenses = monthData.expenses
+            .filter(e => {
+                const d = new Date(e.date);
+                return d.getMonth() === month && d.getFullYear() === year;
+            })
+            .reduce((s, e) => s + e.amount, 0);
+        const final = (monthData.capital || 0) + (monthData.revenu || 0) - totalDepenses;
+        document.getElementById('displayCapitalFinal').innerText = final.toFixed(2) + ' ' + CURRENCY.main;
+    }
 
     function renderCalendar() {
         const grid = document.getElementById('calendarGrid');
@@ -1272,177 +1540,147 @@ function updateExpense() {
                         </div>
                     </td>
                     <td>${budgetTotalMois.toFixed(2)} ${CURRENCY.main}</td>
-<td>${budgetTotalSemaine.toFixed(2)} ${CURRENCY.main}</td>
-<td style="color: ${cumul > budgetTotalMois ? 'var(--danger)' : 'inherit'}; font-weight:700;">
-    ${cumul.toFixed(2)} ${CURRENCY.main}
-</td>
-<td style="color: ${resteSemaine < 0 ? 'var(--danger)' : 'var(--success)'}; font-weight:700;">
-    ${resteSemaine.toFixed(2)} ${CURRENCY.main}
-</td>
-<td style="color: ${resteMois < 0 ? 'var(--danger)' : 'var(--success)'}; font-weight:700;">
-    ${resteMois.toFixed(2)} ${CURRENCY.main}
-</td>
+                    <td>${budgetTotalSemaine.toFixed(2)} ${CURRENCY.main}</td>
+                    <td style="color: ${cumul > budgetTotalMois ? 'var(--danger)' : 'inherit'}; font-weight:700;">
+                        ${cumul.toFixed(2)} ${CURRENCY.main}
+                    </td>
+                    <td style="color: ${resteSemaine < 0 ? 'var(--danger)' : 'var(--success)'}; font-weight:700;">
+                        ${resteSemaine.toFixed(2)} ${CURRENCY.main}
+                    </td>
+                    <td style="color: ${resteMois < 0 ? 'var(--danger)' : 'var(--success)'}; font-weight:700;">
+                        ${resteMois.toFixed(2)} ${CURRENCY.main}
+                    </td>
                 </tr>
             `;
         }).join('');
     }
 
+    // --- MODIFICATION DU TAUX DE CHANGE ---
+
+    function modifyExchangeRate() {
+        const newRate = prompt(`Taux de change actuel: 1 $ = ${CURRENCY.exchangeRate} FC\nEntrez le nouveau taux:`, CURRENCY.exchangeRate);
+        if (newRate !== null && !isNaN(newRate) && parseFloat(newRate) > 0) {
+            CURRENCY.exchangeRate = parseFloat(newRate);
+            document.getElementById('exchangeRateDisplay').textContent = CURRENCY.exchangeRate;
+            // Mettre à jour le label dans la modale de dépense
+            document.getElementById('exchangeRateLabel').textContent = CURRENCY.exchangeRate;
+            // Sauvegarder dans localStorage
+            localStorage.setItem('exchangeRate', CURRENCY.exchangeRate);
+            alert(`Taux mis à jour: 1 $ = ${CURRENCY.exchangeRate} FC`);
+        }
+    }
+
+    // Charger le taux sauvegardé
+    const savedRate = localStorage.getItem('exchangeRate');
+    if (savedRate) {
+        CURRENCY.exchangeRate = parseFloat(savedRate);
+    }
+
     // --- LANCEMENT ---
+
     // Démarrer l'application
     init();
+
     // --- GESTION DE L'INSTALLATION PWA ---
 
-let deferredPrompt = null;
-const installBanner = document.getElementById('installBanner');
-const installButton = document.getElementById('installButton');
-const closeInstallBanner = document.getElementById('closeInstallBanner');
+    let deferredPrompt = null;
+    const installBanner = document.getElementById('installBanner');
+    const installButton = document.getElementById('installButton');
+    const closeInstallBanner = document.getElementById('closeInstallBanner');
 
-// Vérifier si l'application est déjà installée
-const isAppInstalled = window.matchMedia('(display-mode: standalone)').matches || 
-                       window.navigator.standalone === true;
+    // Vérifier si l'application est déjà installée
+    const isAppInstalled = window.matchMedia('(display-mode: standalone)').matches || 
+                           window.navigator.standalone === true;
 
-// Écouter l'événement beforeinstallprompt
-window.addEventListener('beforeinstallprompt', (e) => {
-    // Empêcher l'affichage automatique du mini-infobar Chrome
-    e.preventDefault();
-    // Stocker l'événement pour l'utiliser plus tard
-    deferredPrompt = e;
-    
-    // Afficher la bannière d'installation (sauf si déjà installée)
-    if (!isAppInstalled) {
-        installBanner.classList.add('visible');
+    // Écouter l'événement beforeinstallprompt
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        if (!isAppInstalled) {
+            installBanner.classList.add('visible');
+        }
+    });
+
+    installButton.addEventListener('click', async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const result = await deferredPrompt.userChoice;
+            
+            if (result.outcome === 'accepted') {
+                console.log('✅ Application installée avec succès');
+                installBanner.classList.remove('visible');
+                setSyncStatus('synced', '✅ Application installée');
+            }
+            
+            deferredPrompt = null;
+        }
+    });
+
+    closeInstallBanner.addEventListener('click', () => {
+        installBanner.classList.remove('visible');
+        localStorage.setItem('installBannerDismissed', 'true');
+        localStorage.setItem('installBannerDismissedDate', Date.now().toString());
+    });
+
+    if (isAppInstalled) {
+        installBanner.classList.remove('visible');
     }
-});
 
-// Gérer le clic sur le bouton d'installation
-installButton.addEventListener('click', async () => {
-    if (deferredPrompt) {
-        // Afficher la boîte de dialogue d'installation
-        deferredPrompt.prompt();
-        
-        // Attendre le choix de l'utilisateur
-        const result = await deferredPrompt.userChoice;
-        
-        if (result.outcome === 'accepted') {
-            console.log('✅ Application installée avec succès');
+    window.addEventListener('appinstalled', () => {
+        console.log('✅ Application installée via appinstalled');
+        installBanner.classList.remove('visible');
+    });
+
+    window.matchMedia('(display-mode: standalone)').addEventListener('change', (e) => {
+        if (e.matches) {
+            console.log('✅ Application lancée en mode standalone');
             installBanner.classList.remove('visible');
-            // Mettre à jour le statut
-            setSyncStatus('synced', '✅ Application installée');
-        } else {
-            console.log('❌ Installation refusée');
         }
-        
-        // Réinitialiser l'événement
-        deferredPrompt = null;
-    }
-});
+    });
 
-// Fermer la bannière d'installation
-closeInstallBanner.addEventListener('click', () => {
-    installBanner.classList.remove('visible');
-});
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-// Cacher la bannière si l'application est déjà installée
-if (isAppInstalled) {
-    installBanner.classList.remove('visible');
-}
-
-// Écouter l'événement appinstalled
-window.addEventListener('appinstalled', () => {
-    console.log('✅ Application installée via appinstalled');
-    installBanner.classList.remove('visible');
-});
-
-// Détecter le changement de mode d'affichage (standalone)
-window.matchMedia('(display-mode: standalone)').addEventListener('change', (e) => {
-    if (e.matches) {
-        console.log('✅ Application lancée en mode standalone');
-        installBanner.classList.remove('visible');
-    }
-});
-
-// --- CONFIGURATION POUR iOS (Safari) ---
-
-// Détection iOS
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-
-if (isIOS && !isAppInstalled) {
-    // Sur iOS, afficher un message personnalisé
-    const installText = document.querySelector('.install-banner .install-text p');
-    if (installText) {
-        installText.textContent = 'Touchez "Partager" puis "Ajouter à l\'écran d\'accueil"';
-    }
-    // Afficher la bannière si pas encore installée
-    if (!isAppInstalled) {
-        installBanner.classList.add('visible');
-    }
-}
-
-// Cacher la bannière si l'utilisateur a déjà fermé
-function checkInstallDismissed() {
-    const dismissed = localStorage.getItem('installBannerDismissed');
-    if (dismissed === 'true') {
-        installBanner.classList.remove('visible');
-    }
-}
-
-// Sauvegarder la fermeture
-closeInstallBanner.addEventListener('click', () => {
-    localStorage.setItem('installBannerDismissed', 'true');
-});
-
-// Réafficher après 7 jours si l'utilisateur a fermé
-function resetInstallBanner() {
-    const dismissedDate = localStorage.getItem('installBannerDismissedDate');
-    if (dismissedDate) {
-        const daysSince = (Date.now() - parseInt(dismissedDate)) / (1000 * 60 * 60 * 24);
-        if (daysSince > 7) {
-            localStorage.removeItem('installBannerDismissed');
-            localStorage.removeItem('installBannerDismissedDate');
+    if (isIOS && !isAppInstalled) {
+        const installText = document.querySelector('.install-banner .install-text p');
+        if (installText) {
+            installText.textContent = 'Touchez "Partager" puis "Ajouter à l\'écran d\'accueil"';
         }
-    }
-}
-
-// Modifier la fonction de fermeture
-closeInstallBanner.addEventListener('click', () => {
-    localStorage.setItem('installBannerDismissed', 'true');
-    localStorage.setItem('installBannerDismissedDate', Date.now().toString());
-    installBanner.classList.remove('visible');
-});
-
-// Appeler au chargement
-checkInstallDismissed();
-resetInstallBanner();
-
-// Afficher la bannière si l'événement beforeinstallprompt n'est pas déclenché
-// (pour iOS et certains navigateurs)
-setTimeout(() => {
-    const dismissed = localStorage.getItem('installBannerDismissed');
-    if (!isAppInstalled && dismissed !== 'true' && !installBanner.classList.contains('visible')) {
-        // Vérifier si on est sur un appareil mobile
-        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-        if (isMobile) {
+        if (!isAppInstalled) {
             installBanner.classList.add('visible');
         }
     }
-}, 3000);
 
-function modifyExchangeRate() {
-    const newRate = prompt(`Taux de change actuel: 1 $ = ${CURRENCY.exchangeRate} FC\nEntrez le nouveau taux:`, CURRENCY.exchangeRate);
-    if (newRate !== null && !isNaN(newRate) && parseFloat(newRate) > 0) {
-        CURRENCY.exchangeRate = parseFloat(newRate);
-        document.getElementById('exchangeRateDisplay').textContent = CURRENCY.exchangeRate;
-        // Sauvegarder dans localStorage
-        localStorage.setItem('exchangeRate', CURRENCY.exchangeRate);
-        alert(`Taux mis à jour: 1 $ = ${CURRENCY.exchangeRate} FC`);
+    function checkInstallDismissed() {
+        const dismissed = localStorage.getItem('installBannerDismissed');
+        if (dismissed === 'true') {
+            installBanner.classList.remove('visible');
+        }
     }
-}
 
-// Charger le taux sauvegardé
-const savedRate = localStorage.getItem('exchangeRate');
-if (savedRate) {
-    CURRENCY.exchangeRate = parseFloat(savedRate);
-}
+    function resetInstallBanner() {
+        const dismissedDate = localStorage.getItem('installBannerDismissedDate');
+        if (dismissedDate) {
+            const daysSince = (Date.now() - parseInt(dismissedDate)) / (1000 * 60 * 60 * 24);
+            if (daysSince > 7) {
+                localStorage.removeItem('installBannerDismissed');
+                localStorage.removeItem('installBannerDismissedDate');
+            }
+        }
+    }
+
+    checkInstallDismissed();
+    resetInstallBanner();
+
+    setTimeout(() => {
+        const dismissed = localStorage.getItem('installBannerDismissed');
+        if (!isAppInstalled && dismissed !== 'true' && !installBanner.classList.contains('visible')) {
+            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            if (isMobile) {
+                installBanner.classList.add('visible');
+            }
+        }
+    }, 3000);
 </script>
 
 </body>
